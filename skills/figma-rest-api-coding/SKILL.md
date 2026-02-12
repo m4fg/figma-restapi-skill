@@ -32,11 +32,10 @@ If a node ID comes from URL format (`1-2`), normalize to API format (`1:2`).
 
 ## Authenticate
 
-Set token in `FIGMA_TOKEN` (PAT or OAuth access token).
+Set PAT in `FIGMA_TOKEN`.
 
-Send both headers for compatibility:
+Use this header:
 
-- `Authorization: Bearer <token>`
 - `X-Figma-Token: <token>`
 
 Prefer granular scopes. Avoid deprecated broad scopes.
@@ -74,6 +73,7 @@ Apply these rules for stable automation:
 - Chunk very large `ids` queries
 - Cache per-run responses for `nodes`, `variables`, `styles`
 - Report unknown node types explicitly instead of guessing
+- If a Figma API request fails, stop processing immediately and report both the error code and cause
 
 ## Output Contract
 

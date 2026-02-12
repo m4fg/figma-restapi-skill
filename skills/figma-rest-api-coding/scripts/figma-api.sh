@@ -2,7 +2,7 @@
 set -euo pipefail
 
 API_BASE_URL="${FIGMA_API_BASE_URL:-https://api.figma.com}"
-TOKEN="${FIGMA_TOKEN:-${FIGMA_ACCESS_TOKEN:-}}"
+TOKEN="${FIGMA_TOKEN:-}"
 
 usage() {
   cat <<'USAGE'
@@ -18,7 +18,7 @@ Usage:
   figma-api.sh dev-resources <file_key>
 
 Environment:
-  FIGMA_TOKEN (required for API calls)
+  FIGMA_TOKEN (PAT, required for API calls)
   FIGMA_API_BASE_URL (optional, default: https://api.figma.com)
 
 Examples:
@@ -71,22 +71,66 @@ figma_get() {
   local path="$1"
   local query="${2:-}"
   local url="${API_BASE_URL}${path}"
+  local tmp_body
+  local status_code
+  local curl_exit=0
+  local cause=""
+  local raw_body=""
 
   if [[ -n "$query" ]]; then
     url="${url}?${query}"
   fi
 
-  if command -v jq >/dev/null 2>&1; then
-    curl -sS --fail-with-body \
-      -H "Authorization: Bearer ${TOKEN}" \
-      -H "X-Figma-Token: ${TOKEN}" \
-      "$url" | jq .
-  else
-    curl -sS --fail-with-body \
-      -H "Authorization: Bearer ${TOKEN}" \
+  tmp_body="$(mktemp)"
+
+  status_code="$(
+    curl -sS \
+      -o "$tmp_body" \
+      -w "%{http_code}" \
       -H "X-Figma-Token: ${TOKEN}" \
       "$url"
+  )" || curl_exit=$?
+
+  if [[ "$curl_exit" -ne 0 ]]; then
+    echo "Figma API request failed before receiving a valid response." >&2
+    echo "Error code: curl_exit_${curl_exit}" >&2
+    echo "Cause: network error, timeout, or TLS/DNS issue while requesting ${url}" >&2
+    if [[ -s "$tmp_body" ]]; then
+      raw_body="$(tr '\n' ' ' < "$tmp_body" | sed 's/[[:space:]]\\+/ /g')"
+      if [[ -n "$raw_body" ]]; then
+        echo "Response body: ${raw_body}" >&2
+      fi
+    fi
+    rm -f "$tmp_body"
+    exit 1
   fi
+
+  if [[ "$status_code" -lt 200 || "$status_code" -ge 300 ]]; then
+    if command -v jq >/dev/null 2>&1; then
+      cause="$(jq -r 'if type=="object" then (.err // .message // .error // empty) else empty end' "$tmp_body" 2>/dev/null || true)"
+    fi
+    if [[ -z "$cause" ]]; then
+      raw_body="$(tr '\n' ' ' < "$tmp_body" | sed 's/[[:space:]]\\+/ /g')"
+      if [[ ${#raw_body} -gt 800 ]]; then
+        raw_body="${raw_body:0:800}..."
+      fi
+      cause="${raw_body:-No detail returned by API.}"
+    fi
+
+    echo "Figma API request failed." >&2
+    echo "Error code: HTTP_${status_code}" >&2
+    echo "Cause: ${cause}" >&2
+    echo "URL: ${url}" >&2
+    rm -f "$tmp_body"
+    exit 1
+  fi
+
+  if command -v jq >/dev/null 2>&1; then
+    jq . "$tmp_body"
+  else
+    cat "$tmp_body"
+  fi
+  rm -f "$tmp_body"
 }
 
 main() {

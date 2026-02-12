@@ -4,8 +4,8 @@ Use the following Figma REST endpoints for coding workflows.
 
 ## Authentication and Scope
 
-- Use `FIGMA_TOKEN`
-- Send `Authorization: Bearer <token>` and `X-Figma-Token: <token>`
+- Use `FIGMA_TOKEN` (PAT)
+- Send `X-Figma-Token: <token>`
 - Prefer granular scopes such as:
   - `file_content:read`
   - `file_variables:read`

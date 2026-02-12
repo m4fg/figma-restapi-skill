@@ -6,7 +6,6 @@ Use these snippets as templates for coding tasks.
 
 ```bash
 curl -sS --fail-with-body \
-  -H "Authorization: Bearer ${FIGMA_TOKEN}" \
   -H "X-Figma-Token: ${FIGMA_TOKEN}" \
   "https://api.figma.com/v1/files/${FILE_KEY}/nodes?ids=${NODE_IDS}&depth=2"
 ```
@@ -15,7 +14,6 @@ curl -sS --fail-with-body \
 
 ```bash
 curl -sS --fail-with-body \
-  -H "Authorization: Bearer ${FIGMA_TOKEN}" \
   -H "X-Figma-Token: ${FIGMA_TOKEN}" \
   "https://api.figma.com/v1/images/${FILE_KEY}?ids=${NODE_IDS}&format=png&scale=2"
 ```
@@ -31,7 +29,6 @@ async function figmaGet(path: string, retries = 4): Promise<unknown> {
   while (true) {
     const res = await fetch(`https://api.figma.com${path}`, {
       headers: {
-        Authorization: `Bearer ${token}`,
         "X-Figma-Token": token,
       },
     });

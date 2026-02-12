@@ -71,6 +71,7 @@ Avoid guessing component behavior that is not present in API data.
 
 ## 8. Handle Errors Predictably
 
+- On any Figma communication error, stop processing immediately and report both error code and cause
 - On `429`: back off using `Retry-After`.
 - On `403`: check missing scope.
 - On `404`: validate `file_key` or node existence.
