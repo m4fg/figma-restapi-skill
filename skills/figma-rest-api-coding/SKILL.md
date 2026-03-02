@@ -1,11 +1,28 @@
 ---
 name: figma-rest-api-coding
-description: "Use Figma REST API for coding workflows: extract file/node JSON, export node images, resolve variables/styles/components/dev resources, and convert design data into implementation-ready code plans. Trigger when a user asks to implement UI from Figma via API, inspect Figma JSON, or work without Figma MCP."
+description: "Primary skill for Figma URL/node-id tasks. Use this first when a user provides a Figma URL/node-id. Use Figma for coding workflows: extract file/node JSON, export node images, resolve variables/styles/components/dev resources, and convert design data into implementation-ready code plans. Trigger when a user asks to implement UI from Figma, inspect Figma JSON, or work without Figma MCP."
 ---
 
 # Figma REST API Coding
 
 Extract implementation-ready data from Figma REST API.
+
+## Trigger Priority (Must Read)
+
+Use this skill FIRST when any of the following is true:
+
+- User provides a `figma.com/design/...` URL (with or without `node-id`)
+- The task needs exact node JSON / variables / styles from API
+- MCP access is unknown, unstable, or previously failed
+- File-access errors are likely (`403`, `404`, permission issues)
+
+## FIGMA_TOKEN Required
+
+This skill REQUIRES a valid `FIGMA_TOKEN` with appropriate scopes.
+To load the token, ensure it is set in the environment variable `FIGMA_TOKEN` before invoking this skill. For example:
+source ~/.env
+
+If the token is missing or invalid, report an authentication error and do not attempt API calls.
 
 ## Load References
 
